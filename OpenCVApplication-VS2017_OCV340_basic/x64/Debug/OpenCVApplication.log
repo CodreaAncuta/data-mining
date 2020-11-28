@@ -1,0 +1,11 @@
+﻿  OpenCVApplication.cpp
+e:\documents - datae\ubb master sdi\data mining\edge detection\opencvapplication-vs2017_ocv340_basic\opencvapplication.cpp(241): warning C4305: '+=': truncation from 'double' to '_Tp'
+          with
+          [
+              _Tp=float
+          ]
+e:\documents - datae\ubb master sdi\data mining\edge detection\opencvapplication-vs2017_ocv340_basic\opencvapplication.cpp(359): warning C4244: '=': conversion from 'long double' to 'int', possible loss of data
+  OpenCVApplication.vcxproj -> E:\Documents - dataE\ubb master sdi\Data Mining\edge detection\OpenCVApplication-VS2017_OCV340_basic\x64\Debug\OpenCVApplication.exe
+  OpenCV\dll\Debug\opencv_ffmpeg340_64.dll
+  OpenCV\dll\Debug\opencv_world340d.dll
+          2 file(s) copied.
