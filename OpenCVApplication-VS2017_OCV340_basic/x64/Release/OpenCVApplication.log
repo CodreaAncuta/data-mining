@@ -1,0 +1,22 @@
+﻿  OpenCVApplication.cpp
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(201,30): warning C4305: '+=': truncation from 'double' to '_Tp'
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(201,30): warning C4305:         with
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(201,30): warning C4305:         [
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(201,30): warning C4305:             _Tp=float
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(201,30): warning C4305:         ]
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(322,25): warning C4244: '=': conversion from 'long double' to 'int', possible loss of data
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(417,19): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(418,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(520,18): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(521,19): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(575,18): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\OpenCVApplication.cpp(576,19): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  Generating code
+  3 of 433 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
+    2 functions were new in current compilation
+    30 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  OpenCVApplication.vcxproj -> D:\Desktop\Master_an1_sem_1\DM\data-mining\OpenCVApplication-VS2017_OCV340_basic\x64\Release\OpenCVApplication.exe
+  OpenCV\dll\Release\opencv_ffmpeg340_64.dll
+  OpenCV\dll\Release\opencv_world340.dll
+          2 file(s) copied.

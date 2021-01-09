@@ -55,38 +55,7 @@ void testCanny()
 	}
 }
 
-void testVideoSequence()
-{
-	VideoCapture cap("Videos/rubic.avi"); // off-line video from file
-	//VideoCapture cap(0);	// live video from web cam
-	if (!cap.isOpened()) {
-		printf("Cannot open video capture device.\n");
-		waitKey(0);
-		return;
-	}
-		
-	Mat edges;
-	Mat frame;
-	char c;
 
-	while (cap.read(frame))
-	{
-		Mat grayFrame;
-		cvtColor(frame, grayFrame, CV_BGR2GRAY);
-		Canny(grayFrame,edges,40,100,3);
-		imshow("source", frame);
-		imshow("gray", grayFrame);
-		imshow("edges", edges);
-		c = cvWaitKey(0);  // waits a key press to advance to the next frame
-		if (c == 27) {
-			// press ESC to exit
-			printf("ESC pressed - capture finished\n"); 
-			break;  //ESC pressed
-		};
-	}
-
-	//todo save the frames to have a full processed & saved video
-}
 
 /* Histogram display function - display a histogram using bars (simlilar to L3 / PI)
 Input:
@@ -181,7 +150,7 @@ void computeHistogram(Mat_<uchar> img, int* hist, float* pdf, int m) {
 
 }
 
-void applyThreshold(Mat_<uchar> img, long double threshold) {
+Mat_ < uchar> applyThreshold(Mat_<uchar> img, long double threshold) {
 
 	Mat_ < uchar> result(img.rows, img.cols);
 
@@ -193,14 +162,15 @@ void applyThreshold(Mat_<uchar> img, long double threshold) {
 				result(i, j) = 0;
 		}
 
-	imshow("Result threshold", result);
-	waitKey(0);
+	/*imshow("Result threshold", result);
+	waitKey(0);*/
+	return result;
 }
 
-void canny(Mat_<uchar> src) {
+Mat_ < uchar> canny(Mat_<uchar> src) {
 	
-	imshow("original image", src);
-	waitKey(0);
+	/*imshow("original image", src);
+	waitKey(0);*/
 
 	//todo - separate sobel, prewitt in different methods and then use them here if necessary
 
@@ -208,29 +178,17 @@ void canny(Mat_<uchar> src) {
 	Mat_<float> dxSobel = Mat(src.rows, src.cols, CV_32FC1);
 	float * vals = new float[9]{ -1, 0, 1, -2, 0, 2, -1, 0, 1 };
 	dxSobel = convolutionWithoutNormalization(src,1,1,vals);
-	imshow("dx-Sobel", abs(dxSobel) / 255);
-	waitKey(0);
+	/*imshow("dx-Sobel", abs(dxSobel) / 255);
+	waitKey(0);*/
 
 	// Sobel dy
 	Mat_<float> dySobel = Mat(src.rows, src.cols, CV_32FC1);
 	float * valsSecond = new float[9]{ 1, 2, 1, 0, 0, 0, -1, -2, -1 };
 	dySobel = convolutionWithoutNormalization(src, 1, 1, valsSecond);
-	imshow("dy-Sobel", abs(dySobel) / 255);
-	waitKey(0);
-
-	// Prewitt dx
-	Mat_<float> dxPrewitt = Mat(src.rows, src.cols, CV_32FC1);
-	float * valsPrewitt = new float[9]{ -1, 0, 1, -1, 0, 1, -1, 0, 1 };
-	dxPrewitt = convolutionWithoutNormalization(src, 1, 1, valsPrewitt);
-	imshow("dx-Prewitt", abs(dxPrewitt) / 255);
-	waitKey(0);
-
-	// Prewitt dy
-	Mat_<float> dyPrewitt = Mat(src.rows, src.cols, CV_32FC1);
-	float * valsSecondPrewitt = new float[9]{ 1, 1, 1, 0, 0, 0, -1, -1, -1 };
-	dyPrewitt = convolutionWithoutNormalization(src, 1, 1, valsSecondPrewitt);
-	imshow("dy-Prewitt", abs(dyPrewitt) / 255);
-	waitKey(0);
+	/*imshow("dy-Sobel", abs(dySobel) / 255);
+	waitKey(0);*/
+	
+	
 
 	Mat_<float> magh = Mat(src.rows, src.cols, CV_32FC1);
 	Mat_<float> angles = Mat(src.rows, src.cols, CV_32FC1);
@@ -243,8 +201,8 @@ void canny(Mat_<uchar> src) {
 				angles(i, j) += 2 * CV_PI;
 		}
 
-	imshow("magh", magh);
-	waitKey(0);
+	/*imshow("magh", magh);
+	waitKey(0);*/
 
 	int dirx[8] = { 0, -1, -1, -1, 0, 1, 1, 1 };
 	int diry[8] = { 1, 1, 0, -1, -1, -1, 0, 1 };
@@ -266,12 +224,14 @@ void canny(Mat_<uchar> src) {
 			}
 		}
 
-	imshow("thinned", abs(thinnedMagh) / 255);
-	waitKey(0);
+	/*imshow("thinned", abs(thinnedMagh) / 255);
+	waitKey(0);*/
 
 	Mat_ < uchar> result(thinnedMagh.rows, thinnedMagh.cols);
-	int t1 = 150;
-	int t2 = 200;
+	/*int t1 = 150;
+	int t2 = 200;*/
+	int t1 = 40;
+	int t2 = 100;
 
 	for (int i = 0; i < thinnedMagh.rows; i++)
 		for (int j = 0; j < thinnedMagh.cols; j++) {
@@ -283,8 +243,8 @@ void canny(Mat_<uchar> src) {
 				result(i, j) = 0;
 		}
 
-	imshow("3way threshold", result);
-	waitKey(0);
+	/*imshow("3way threshold", result);
+	waitKey(0);*/
 
 	std::queue<Point2i> Q;
 	Point2i elem;
@@ -301,8 +261,8 @@ void canny(Mat_<uchar> src) {
 
 				for (int k = 0; k < 8; k++) {
 					if (i + dirx[k] < result.rows && i + dirx[k] >= 0 && j + diry[k] < result.cols && j + diry[k] >= 0) {
-						if (result(elem.x + dirx[k], elem.y + diry[k]) == 128) {
-							result(elem.x + dirx[k], elem.y + diry[k]) = 255;
+						if (result.at<uchar>(elem.x + dirx[k], elem.y + diry[k]) == 128) {
+							result.at<uchar>(elem.x + dirx[k], elem.y + diry[k]) = 255;
 							Q.push({ elem.x + dirx[k], elem.y + diry[k] });
 						}
 					}
@@ -319,8 +279,9 @@ void canny(Mat_<uchar> src) {
 				}
 			}
 		
-		imshow("result edge linking", result);
-		waitKey(0);
+		/*imshow("result edge linking", result);
+		waitKey(0);*/
+		return result;
 }
 
 long double otsu(Mat_<uchar> src) {
@@ -404,8 +365,254 @@ long double otsu(Mat_<uchar> src) {
 		}
 	}
 
-	cout << "Otsu's algorithm implementation thresholding result: " << bin_mids[getmax];
+	//cout << "Otsu's algorithm implementation thresholding result: " << bin_mids[getmax];
 	return bin_mids[getmax];
+}
+
+Mat_<uchar> Prewitt(Mat_<uchar> src) {
+	// Prewitt dx
+	Mat_<float> dxPrewitt = Mat(src.rows, src.cols, CV_32FC1);
+	float* valsPrewitt = new float[9]{ -1, 0, 1, -1, 0, 1, -1, 0, 1 };
+	dxPrewitt = convolutionWithoutNormalization(src, 1, 1, valsPrewitt);
+	/*imshow("dx-Prewitt", abs(dxPrewitt) / 255);
+	waitKey(0);*/
+
+	// Prewitt dy
+	Mat_<float> dyPrewitt = Mat(src.rows, src.cols, CV_32FC1);
+	float* valsSecondPrewitt = new float[9]{ 1, 1, 1, 0, 0, 0, -1, -1, -1 };
+	dyPrewitt = convolutionWithoutNormalization(src, 1, 1, valsSecondPrewitt);
+	/*imshow("dy-Prewitt", abs(dyPrewitt) / 255);
+	waitKey(0);*/
+	return dxPrewitt;
+}
+
+Mat_<uchar> Sobel(Mat_ < uchar> src) {
+	// Sobel dx
+	Mat_<float> dxSobel = Mat(src.rows, src.cols, CV_32FC1);
+	float* vals = new float[9]{ -1, 0, 1, -2, 0, 2, -1, 0, 1 };
+	dxSobel = convolutionWithoutNormalization(src, 1, 1, vals);
+	/*imshow("dx-Sobel", abs(dxSobel) / 255);
+	waitKey(0);*/
+
+	// Sobel dy
+	Mat_<float> dySobel = Mat(src.rows, src.cols, CV_32FC1);
+	float* valsSecond = new float[9]{ 1, 2, 1, 0, 0, 0, -1, -2, -1 };
+	dySobel = convolutionWithoutNormalization(src, 1, 1, valsSecond);
+	/*imshow("dy-Sobel", abs(dySobel) / 255);
+	waitKey(0);*/
+	return dxSobel;
+}
+
+int testVideoSequenceAll()
+{
+		VideoCapture cap(0);
+		// Check if camera opened successfully
+		
+		if (!cap.isOpened())
+		{
+				cout << "Error opening video stream" << endl;
+				return -1;
+		}
+	
+		int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+		int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+		VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
+		Mat_<uchar> edges;
+		Mat_<uchar> edges_otsu;
+		Mat_<uchar> edges_Prewitt;
+		Mat_<uchar> edges_Sobel;
+		int c = 0;
+		while (1)
+		{
+				Mat frame;
+				Mat grayFrame;
+				cap >> frame;
+				if (frame.empty())
+					break;
+				cvtColor(frame, grayFrame, CV_BGR2GRAY);
+				edges=canny(grayFrame);
+				long double thres = otsu(grayFrame);
+				edges_otsu=applyThreshold(grayFrame, thres);
+				edges_Prewitt = Prewitt(grayFrame);
+				edges_Sobel = Sobel(grayFrame);
+
+				//video.write(edges);
+				//imshow("Frame", edges);
+				
+				// Display the resulting frame    	
+				imshow("Canny", edges);
+				imshow("Otsu", edges_otsu);
+				imshow("Prewitt", edges_Prewitt);
+				imshow("Sobel", edges_Sobel);
+			
+
+				// Press  ESC on keyboard to  exit
+
+				char c = (char)waitKey(1);
+				//c++;
+				if (c == 27)
+					break;
+			
+		}
+
+		// When everything done, release the video capture and write object
+		cap.release();
+		video.release();
+		// Closes all the windows
+		destroyAllWindows();
+		return 0;
+	//VideoCapture cap("Videos/rubic.avi"); // off-line video from file
+	////VideoCapture cap(0);	// live video from web cam
+	//if (!cap.isOpened()) {
+	//	printf("Cannot open video capture device.\n");
+	//	waitKey(0);
+	//	return;
+	//}
+
+	//int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	//int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+	//VideoWriter video("canny.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
+
+	//Mat edges;
+	//Mat frame;
+	//char c;
+
+	//while (cap.read(frame))
+	//{
+	//	Mat grayFrame;
+	//	cap >> frame;
+	//	cvtColor(frame, grayFrame, CV_BGR2GRAY);
+	//	//Canny(grayFrame,edges,40,100,3);
+	//	canny(grayFrame,edges);
+	//	/*imshow("source", frame);
+	//	imshow("gray", grayFrame);*/
+	//	//imshow("edges", edges);
+
+	//	
+
+	//	video.write(edges);
+
+	//	/*c = cvWaitKey(0);*/  // waits a key press to advance to the next frame
+	//	//if (c == 27) {
+	//	//	// press ESC to exit
+	//	//	printf("ESC pressed - capture finished\n");
+	//	//	break;  //ESC pressed
+	//	//};
+	//}
+	//video.release();
+
+	//todo save the frames to have a full processed & saved video
+}
+
+
+
+int testVideoSequenceCanny()
+{
+	VideoCapture cap(0);
+	// Check if camera opened successfully
+
+	if (!cap.isOpened())
+	{
+		cout << "Error opening video stream" << endl;
+		return -1;
+	}
+
+	int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+	VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
+	Mat_<uchar> edges;
+	Mat_<uchar> edgesC;
+
+	int c = 0;
+	while (1)
+	{
+		Mat frame;
+		Mat grayFrame;
+		cap >> frame;
+		if (frame.empty())
+			break;
+		cvtColor(frame, grayFrame, CV_BGR2GRAY);
+		edges = canny(grayFrame);
+		
+		Canny(grayFrame, edgesC, 40, 100, 3);
+		
+		// Display the resulting frame    	
+		imshow("Our Canny", edges);
+		imshow("OpenCV Canny", edgesC);
+		
+
+
+		// Press  ESC on keyboard to  exit
+
+		char c = (char)waitKey(1);
+		//c++;
+		if (c == 27)
+			break;
+
+	}
+
+	// When everything done, release the video capture and write object
+	cap.release();
+	video.release();
+	// Closes all the windows
+	destroyAllWindows();
+	return 0;
+	
+}
+
+
+int testVideoSequenceOtsu()
+{
+	VideoCapture cap(0);
+	// Check if camera opened successfully
+
+	if (!cap.isOpened())
+	{
+		cout << "Error opening video stream" << endl;
+		return -1;
+	}
+
+	int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+	VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
+	Mat_<uchar> edges;
+	Mat_<uchar> edgesO;
+
+	int c = 0;
+	while (1)
+	{
+		Mat frame;
+		Mat grayFrame;
+		cap >> frame;
+		if (frame.empty())
+			break;
+		cvtColor(frame, grayFrame, CV_BGR2GRAY);
+		
+		long double thres = otsu(grayFrame);
+		edges = applyThreshold(grayFrame, thres);
+		
+		double thresh = 0;
+		double maxValue = 255;
+		long double threst = cv::threshold(grayFrame, edgesO, thresh, maxValue, THRESH_OTSU);
+
+		// Display the resulting frame    	
+		imshow("Our Otsu", edges);
+		imshow("OpenCV Otsu", edgesO);
+
+
+		char c = (char)waitKey(1);
+		//c++;
+		if (c == 27)
+			break;
+	}
+
+	// When everything done, release the video capture and write object
+	cap.release();
+	video.release();
+	// Closes all the windows
+	destroyAllWindows();
+	return 0;
+
 }
 
 int main()
@@ -442,6 +649,8 @@ int main()
 		printf(" 6 - Canny \n");
 		printf(" 7 - Otsu open cv \n");
 		printf(" 8 - Otsu threshold computed \n");
+		printf(" 9 - Our Canny vs Canny openCV \n");
+		printf(" 10 - Our Sobel vs Sobel openCV \n");
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
 		scanf("%d",&op);
@@ -466,7 +675,7 @@ int main()
 			}
 			case 4:
 			{
-				testVideoSequence();
+				testVideoSequenceAll();
 				break;
 			}
 			case 5:
@@ -479,7 +688,8 @@ int main()
 			case 6:
 			{
 				//canny computed
-				canny(img);
+				
+				/*canny(img);*/
 				break;
 			}
 			case 7:
@@ -499,6 +709,16 @@ int main()
 				//otsu threshold computed
 				long double thres = otsu(img);
 				applyThreshold(img, thres);
+				break;
+			}
+			case 9:
+			{
+				testVideoSequenceCanny();
+				break;
+			}
+			case 10:
+			{
+				testVideoSequenceOtsu();
 				break;
 			}
 		}
