@@ -8,55 +8,6 @@
 #include <random>
 using namespace std;
 
-void testOpenImage()
-{
-	char fname[MAX_PATH];
-	while (openFileDlg(fname))
-	{
-		Mat src;
-		src = imread(fname);
-		imshow("image", src);
-		waitKey();
-	}
-}
-
-void testOpenImagesFld()
-{
-	char folderName[MAX_PATH];
-	if (openFolderDlg(folderName) == 0)
-		return;
-	char fname[MAX_PATH];
-	FileGetter fg(folderName, "bmp");
-	while (fg.getNextAbsFile(fname))
-	{
-		Mat src;
-		src = imread(fname);
-		imshow(fg.getFoundFileName(), src);
-		if (waitKey() == 27) //ESC pressed
-			break;
-	}
-}
- 
-void testCanny()
-{
-	char fname[MAX_PATH];
-	while(openFileDlg(fname))
-	{
-		Mat src,dst,gauss;
-		src = imread(fname,CV_LOAD_IMAGE_GRAYSCALE);
-		double k = 0.4;
-		int pH = 50;
-		int pL = (int) k*pH;
-		GaussianBlur(src, gauss, Size(5, 5), 0.8, 0.8);
-		Canny(gauss,dst,pL,pH,3);
-		imshow("input image",src);
-		imshow("canny",dst);
-		waitKey();
-	}
-}
-
-
-
 /* Histogram display function - display a histogram using bars (simlilar to L3 / PI)
 Input:
 name - destination (output) window name
@@ -172,8 +123,6 @@ Mat_ < uchar> canny(Mat_<uchar> src) {
 	/*imshow("original image", src);
 	waitKey(0);*/
 
-	//todo - separate sobel, prewitt in different methods and then use them here if necessary
-
 	// Sobel dx
 	Mat_<float> dxSobel = Mat(src.rows, src.cols, CV_32FC1);
 	float * vals = new float[9]{ -1, 0, 1, -2, 0, 2, -1, 0, 1 };
@@ -187,8 +136,6 @@ Mat_ < uchar> canny(Mat_<uchar> src) {
 	dySobel = convolutionWithoutNormalization(src, 1, 1, valsSecond);
 	/*imshow("dy-Sobel", abs(dySobel) / 255);
 	waitKey(0);*/
-	
-	
 
 	Mat_<float> magh = Mat(src.rows, src.cols, CV_32FC1);
 	Mat_<float> angles = Mat(src.rows, src.cols, CV_32FC1);
@@ -287,14 +234,10 @@ Mat_ < uchar> canny(Mat_<uchar> src) {
 long double otsu(Mat_<uchar> src) {
 	int bins_num = 256;
 
-	// Get the histogram
+	// Get the histogram and initialize all values to 0
 	long double histogram[256];
-
-	// initialize all intensity values to 0
 	for (int i = 0; i < 256; i++)
 		histogram[i] = 0;
-
-	// calculate the no of pixels for each intensity values
 	for (int y = 0; y < src.rows; y++)
 		for (int x = 0; x < src.cols; x++)
 			histogram[(int)src.at<uchar>(y, x)]++;
@@ -365,76 +308,74 @@ long double otsu(Mat_<uchar> src) {
 		}
 	}
 
-	//cout << "Otsu's algorithm implementation thresholding result: " << bin_mids[getmax];
+	//cout << "Otsu's algorithm thresholding result: " << bin_mids[getmax];
 	return bin_mids[getmax];
 }
 
-Mat_<uchar> Prewitt(Mat_<uchar> src) {
+Mat_<uchar> prewitt(Mat_<uchar> src) {
+
 	// Prewitt dx
 	Mat_<float> dxPrewitt = Mat(src.rows, src.cols, CV_32FC1);
 	float* valsPrewitt = new float[9]{ -1, 0, 1, -1, 0, 1, -1, 0, 1 };
 	dxPrewitt = convolutionWithoutNormalization(src, 1, 1, valsPrewitt);
-	/*imshow("dx-Prewitt", abs(dxPrewitt) / 255);
-	waitKey(0);*/
 
 	// Prewitt dy
 	Mat_<float> dyPrewitt = Mat(src.rows, src.cols, CV_32FC1);
 	float* valsSecondPrewitt = new float[9]{ 1, 1, 1, 0, 0, 0, -1, -1, -1 };
 	dyPrewitt = convolutionWithoutNormalization(src, 1, 1, valsSecondPrewitt);
-	/*imshow("dy-Prewitt", abs(dyPrewitt) / 255);
-	waitKey(0);*/
+
 	return dxPrewitt;
 }
 
-Mat_<uchar> Sobel(Mat_ < uchar> src) {
+Mat_<uchar> sobel(Mat_ < uchar> src) {
+
 	// Sobel dx
 	Mat_<float> dxSobel = Mat(src.rows, src.cols, CV_32FC1);
 	float* vals = new float[9]{ -1, 0, 1, -2, 0, 2, -1, 0, 1 };
 	dxSobel = convolutionWithoutNormalization(src, 1, 1, vals);
-	/*imshow("dx-Sobel", abs(dxSobel) / 255);
-	waitKey(0);*/
 
 	// Sobel dy
 	Mat_<float> dySobel = Mat(src.rows, src.cols, CV_32FC1);
 	float* valsSecond = new float[9]{ 1, 2, 1, 0, 0, 0, -1, -2, -1 };
 	dySobel = convolutionWithoutNormalization(src, 1, 1, valsSecond);
-	/*imshow("dy-Sobel", abs(dySobel) / 255);
-	waitKey(0);*/
+	
 	return dxSobel;
 }
 
 int testVideoSequenceAll()
 {
 		VideoCapture cap(0);
+
 		// Check if camera opened successfully
-		
-		if (!cap.isOpened())
-		{
+		if (!cap.isOpened()) {
 				cout << "Error opening video stream" << endl;
 				return -1;
 		}
 	
-		int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-		int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-		VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
+		//int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+		//int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+		//VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
+
 		Mat_<uchar> edges;
 		Mat_<uchar> edges_otsu;
 		Mat_<uchar> edges_Prewitt;
 		Mat_<uchar> edges_Sobel;
 		int c = 0;
-		while (1)
-		{
+
+		while (1) {
 				Mat frame;
 				Mat grayFrame;
+
 				cap >> frame;
 				if (frame.empty())
 					break;
+
 				cvtColor(frame, grayFrame, CV_BGR2GRAY);
 				edges=canny(grayFrame);
 				long double thres = otsu(grayFrame);
 				edges_otsu=applyThreshold(grayFrame, thres);
-				edges_Prewitt = Prewitt(grayFrame);
-				edges_Sobel = Sobel(grayFrame);
+				edges_Prewitt = prewitt(grayFrame);
+				edges_Sobel = sobel(grayFrame);
 
 				//video.write(edges);
 				//imshow("Frame", edges);
@@ -447,145 +388,81 @@ int testVideoSequenceAll()
 			
 
 				// Press  ESC on keyboard to  exit
-
 				char c = (char)waitKey(1);
-				//c++;
 				if (c == 27)
 					break;
 			
 		}
 
-		// When everything done, release the video capture and write object
 		cap.release();
-		video.release();
-		// Closes all the windows
+		//video.release();
+
 		destroyAllWindows();
 		return 0;
-	//VideoCapture cap("Videos/rubic.avi"); // off-line video from file
-	////VideoCapture cap(0);	// live video from web cam
-	//if (!cap.isOpened()) {
-	//	printf("Cannot open video capture device.\n");
-	//	waitKey(0);
-	//	return;
-	//}
-
-	//int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-	//int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-	//VideoWriter video("canny.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
-
-	//Mat edges;
-	//Mat frame;
-	//char c;
-
-	//while (cap.read(frame))
-	//{
-	//	Mat grayFrame;
-	//	cap >> frame;
-	//	cvtColor(frame, grayFrame, CV_BGR2GRAY);
-	//	//Canny(grayFrame,edges,40,100,3);
-	//	canny(grayFrame,edges);
-	//	/*imshow("source", frame);
-	//	imshow("gray", grayFrame);*/
-	//	//imshow("edges", edges);
-
-	//	
-
-	//	video.write(edges);
-
-	//	/*c = cvWaitKey(0);*/  // waits a key press to advance to the next frame
-	//	//if (c == 27) {
-	//	//	// press ESC to exit
-	//	//	printf("ESC pressed - capture finished\n");
-	//	//	break;  //ESC pressed
-	//	//};
-	//}
-	//video.release();
-
-	//todo save the frames to have a full processed & saved video
 }
-
-
 
 int testVideoSequenceCanny()
 {
 	VideoCapture cap(0);
-	// Check if camera opened successfully
 
-	if (!cap.isOpened())
-	{
+	// Check if camera opened successfully
+	if (!cap.isOpened()) {
 		cout << "Error opening video stream" << endl;
 		return -1;
 	}
 
-	int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-	int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-	VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
 	Mat_<uchar> edges;
 	Mat_<uchar> edgesC;
 
 	int c = 0;
-	while (1)
-	{
+	while (1) {
 		Mat frame;
 		Mat grayFrame;
 		cap >> frame;
+
 		if (frame.empty())
 			break;
+
 		cvtColor(frame, grayFrame, CV_BGR2GRAY);
 		edges = canny(grayFrame);
-		
 		Canny(grayFrame, edgesC, 40, 100, 3);
 		
-		// Display the resulting frame    	
 		imshow("Our Canny", edges);
 		imshow("OpenCV Canny", edgesC);
-		
-
 
 		// Press  ESC on keyboard to  exit
-
 		char c = (char)waitKey(1);
-		//c++;
 		if (c == 27)
 			break;
 
 	}
 
-	// When everything done, release the video capture and write object
 	cap.release();
-	video.release();
-	// Closes all the windows
 	destroyAllWindows();
 	return 0;
-	
 }
-
 
 int testVideoSequenceOtsu()
 {
 	VideoCapture cap(0);
-	// Check if camera opened successfully
 
-	if (!cap.isOpened())
-	{
+	if (!cap.isOpened()) {
 		cout << "Error opening video stream" << endl;
 		return -1;
 	}
 
-	int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-	int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-	VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
 	Mat_<uchar> edges;
 	Mat_<uchar> edgesO;
 
 	int c = 0;
-	while (1)
-	{
+	while (1) {
 		Mat frame;
 		Mat grayFrame;
+
 		cap >> frame;
 		if (frame.empty())
 			break;
+
 		cvtColor(frame, grayFrame, CV_BGR2GRAY);
 		
 		long double thres = otsu(grayFrame);
@@ -594,22 +471,17 @@ int testVideoSequenceOtsu()
 		double thresh = 0;
 		double maxValue = 255;
 		long double threst = cv::threshold(grayFrame, edgesO, thresh, maxValue, THRESH_OTSU);
-
-		// Display the resulting frame    	
+  	
 		imshow("Our Otsu", edges);
 		imshow("OpenCV Otsu", edgesO);
 
-
+		// Press  ESC on keyboard to  exit
 		char c = (char)waitKey(1);
-		//c++;
 		if (c == 27)
 			break;
 	}
 
-	// When everything done, release the video capture and write object
 	cap.release();
-	video.release();
-	// Closes all the windows
 	destroyAllWindows();
 	return 0;
 
@@ -618,12 +490,18 @@ int testVideoSequenceOtsu()
 int main()
 {
 	int op;
-	Mat_<uchar> img = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-	//Mat_<uchar> img = imread("Images/shapes.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-	//Mat_<uchar> img = imread("Images/eight.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-	//Mat_<uchar> img = imread("Images/portrait_Salt&Pepper2.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-	//Mat_<uchar> img = imread("Images/portrait_Gauss1.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-	//Mat_<uchar> img = imread("Images/portrait_Gauss2.bmp", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
+	Mat_<uchar> img = imread("Images/basket.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/bear.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/bear_2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/brush.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/elephants.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/elephants_2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/goat_2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/golfcart.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/lions.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/rino.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/turtle.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 
 	int * hist;
 	float * pdf;
@@ -640,17 +518,18 @@ int main()
 	{
 		//system("cls");
 		destroyAllWindows();
-		printf("Menu:\n");
-		printf(" 1 - Open image\n");
-		printf(" 2 - Open BMP images from folder\n");
-		printf(" 3 - Canny edge detection\n");
-		printf(" 4 - Edges in a video sequence\n");
-		printf(" 5 - Histogram \n");
-		printf(" 6 - Canny \n");
-		printf(" 7 - Otsu open cv \n");
-		printf(" 8 - Otsu threshold computed \n");
-		printf(" 9 - Our Canny vs Canny openCV \n");
-		printf(" 10 - Our Sobel vs Sobel openCV \n");
+		printf("Menu: \n");
+		printf(" 1 - Edges in a video sequence - all edge detection algorithms \n");
+		printf(" 2 - Edges in a video sequence - our canny vs OpenCV canny \n");
+		printf(" 3 - Edges in a video sequence - our otsu vc OpenCV otsu \n");
+		printf(" 4 - Histogram \n");
+		printf(" 5 - Canny - on image \n");
+		printf(" 6 - Otsu - on image \n");
+		printf(" 7 - Sobel - on image \n");
+		printf(" 8 - Prewitt - on image \n");
+		printf(" 9 - Our Canny vs Canny OpenCV - on image \n");
+		printf(" 10 - Our Otsu vs Otsu OpenCV - on image \n");
+		printf(" 11 - All edge detction algorithms - on image \n");
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
 		scanf("%d",&op);
@@ -659,66 +538,108 @@ int main()
 		{
 			case 1:
 			{
-				testOpenImage();
+				testVideoSequenceAll();
 				break;
 			}
 			case 2:
 			{
-				testOpenImagesFld();
+				testVideoSequenceCanny();
 				break;
 			}
 			case 3:
 			{
-				//canny open cv
-				testCanny();
+				testVideoSequenceOtsu();
 				break;
 			}
 			case 4:
-			{
-				testVideoSequenceAll();
-				break;
-			}
-			case 5:
 			{
 				computeHistogram(img, hist, pdf, 1);
 				showHistogram("Histogram", hist, 256, 300);
 				waitKey(0);
 				break;
 			}
+			case 5:
+			{
+				Mat_<uchar> cannyEdges;
+				cannyEdges = canny(img);
+				imshow("Canny Output", cannyEdges);
+				break;
+			}
 			case 6:
 			{
-				//canny computed
-				
-				/*canny(img);*/
+				Mat_<uchar> otsuEdges;
+				long double thres = otsu(img);
+				otsuEdges = applyThreshold(img, thres);
+				imshow("Otsu Output", otsuEdges);
+
 				break;
 			}
 			case 7:
 			{
-				//open cv version of threshold
-				Mat_<uchar> dst;
-				double thresh = 0;
-				double maxValue = 255;
-				long double thres = cv::threshold(img, dst, thresh, maxValue, THRESH_OTSU);
-				cout << "Otsu Threshold : " << thres << endl;
-				imshow("Otsu result OpenCV", dst);
-				waitKey(0);
+				Mat_<uchar> sobelEdges;
+				sobelEdges = sobel(img);
+				imshow("Sobel Output", sobelEdges);
 				break;
 			}
 			case 8:
 			{
-				//otsu threshold computed
-				long double thres = otsu(img);
-				applyThreshold(img, thres);
+				Mat_<uchar> prewittEdges;
+				prewittEdges = prewitt(img);
+				imshow("Prewitt Output", prewittEdges);
 				break;
 			}
 			case 9:
 			{
-				testVideoSequenceCanny();
+				//our canny
+				Mat_<uchar> cannyEdges;
+				cannyEdges = canny(img);
+
+				//opencv canny
+				Mat_<uchar> cannyOpenCvEdges;
+				Canny(img, cannyOpenCvEdges, 40, 100, 3);
+
+				imshow("Canny", cannyEdges);
+				imshow("Canny OpenCV", cannyOpenCvEdges);
 				break;
 			}
 			case 10:
 			{
-				testVideoSequenceOtsu();
+				//our otsu
+				Mat_<uchar> otsuEdges;
+				long double thres = otsu(img);
+				otsuEdges = applyThreshold(img, thres);
+
+				//opencv otsu
+				Mat_<uchar> otsuOpenCvEdges;
+				double thresh = 0;
+				double maxValue = 255;
+				long double threst = cv::threshold(img, otsuOpenCvEdges, thresh, maxValue, THRESH_OTSU);
+
+				imshow("Otsu", otsuEdges);
+				imshow("Otsu OpenCV", otsuOpenCvEdges);
+				break;
+			}
+			case 11:
+			{
+				//all applied on photos
+				Mat_<uchar> cannyEdges;
+				Mat_<uchar> otsuEdges;
+				Mat_<uchar> prewittEdges;
+				Mat_<uchar> sobelEdges;
+
+				cannyEdges = canny(img);
+
+				long double thres = otsu(img);
+				otsuEdges = applyThreshold(img, thres);
+
+				prewittEdges = prewitt(img);
+
+				sobelEdges = sobel(img);
+  	
+				imshow("Canny", cannyEdges);
+				imshow("Otsu", otsuEdges);
+				imshow("Prewitt", prewittEdges);
+				imshow("Sobel", sobelEdges);
 				break;
 			}
 		}
