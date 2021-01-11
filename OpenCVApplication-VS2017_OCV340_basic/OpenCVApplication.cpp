@@ -23,9 +23,9 @@ void showHistogram(const std::string& name, int* hist, const int  hist_cols, con
 
 	//computes histogram maximum
 	int max_hist = 0;
-	for (int i = 0; i<hist_cols; i++)
-	if (hist[i] > max_hist)
-		max_hist = hist[i];
+	for (int i = 0; i < hist_cols; i++)
+		if (hist[i] > max_hist)
+			max_hist = hist[i];
 	double scale = 1.0;
 	scale = (double)hist_height / max_hist;
 	int baseline = hist_height - 1;
@@ -47,13 +47,13 @@ void convertColorToGrayscale() {
 		Mat_<uchar> destination(src.rows, src.cols);
 
 		for (int i = 0; i < src.rows; i++)
-			for (int j = 0; j < src.cols; j++){
+			for (int j = 0; j < src.cols; j++) {
 				uchar b = src(i, j)[0];
 				uchar g = src(i, j)[1];
 				uchar r = src(i, j)[2];
 				destination(i, j) = (r + g + b) / 3;  // cand aduni 3 charuri, se converteste automat la int // nu ramane suma in uchar si face modulo
 			}
-		
+
 
 		imshow("source - color", src);
 		imshow("destination - gray", destination);
@@ -61,7 +61,7 @@ void convertColorToGrayscale() {
 	}
 }
 
-Mat_<float> convolutionWithoutNormalization(Mat_<uchar> src, int k, int k2, float * vals) {
+Mat_<float> convolutionWithoutNormalization(Mat_<uchar> src, int k, int k2, float* vals) {
 
 	Mat_<float> H(2 * k + 1, 2 * k2 + 1, vals);
 	Mat_<float> dest(src.rows, src.cols);
@@ -91,7 +91,7 @@ void computeHistogram(Mat_<uchar> img, int* hist, float* pdf, int m) {
 
 	for (int i = 0; i < img.rows; i++)
 		for (int j = 0; j < img.cols; j++) {
-				hist[(img(i,j)/m)]++;
+			hist[(img(i, j) / m)]++;
 		}
 
 	int M = img.rows * img.cols;
@@ -107,9 +107,9 @@ Mat_ < uchar> applyThreshold(Mat_<uchar> img, long double threshold) {
 
 	for (int i = 0; i < img.rows; i++)
 		for (int j = 0; j < img.cols; j++) {
-			if (img(i, j) > threshold )
+			if (img(i, j) > threshold)
 				result(i, j) = 255;
-			else 
+			else
 				result(i, j) = 0;
 		}
 
@@ -119,30 +119,26 @@ Mat_ < uchar> applyThreshold(Mat_<uchar> img, long double threshold) {
 }
 
 Mat_ < uchar> canny(Mat_<uchar> src) {
-	
-	/*imshow("original image", src);
-	waitKey(0);*/
+
 
 	// Sobel dx
 	Mat_<float> dxSobel = Mat(src.rows, src.cols, CV_32FC1);
-	float * vals = new float[9]{ -1, 0, 1, -2, 0, 2, -1, 0, 1 };
-	dxSobel = convolutionWithoutNormalization(src,1,1,vals);
-	/*imshow("dx-Sobel", abs(dxSobel) / 255);
-	waitKey(0);*/
+	float* vals = new float[9]{ -1, 0, 1, -2, 0, 2, -1, 0, 1 };
+	dxSobel = convolutionWithoutNormalization(src, 1, 1, vals);
+	
 
 	// Sobel dy
 	Mat_<float> dySobel = Mat(src.rows, src.cols, CV_32FC1);
-	float * valsSecond = new float[9]{ 1, 2, 1, 0, 0, 0, -1, -2, -1 };
+	float* valsSecond = new float[9]{ 1, 2, 1, 0, 0, 0, -1, -2, -1 };
 	dySobel = convolutionWithoutNormalization(src, 1, 1, valsSecond);
-	/*imshow("dy-Sobel", abs(dySobel) / 255);
-	waitKey(0);*/
+	
 
 	Mat_<float> magh = Mat(src.rows, src.cols, CV_32FC1);
 	Mat_<float> angles = Mat(src.rows, src.cols, CV_32FC1);
 
 	for (int i = 0; i < dxSobel.rows; i++)
 		for (int j = 0; j < dxSobel.cols; j++) {
-			magh(i, j) = sqrt(dxSobel(i,j) * dxSobel(i,j) + dySobel(i,j) * dySobel(i,j));
+			magh(i, j) = sqrt(dxSobel(i, j) * dxSobel(i, j) + dySobel(i, j) * dySobel(i, j));
 			angles(i, j) = atan2(dySobel(i, j), dxSobel(i, j));
 			if (angles(i, j) < 0)
 				angles(i, j) += 2 * CV_PI;
@@ -160,13 +156,13 @@ Mat_ < uchar> canny(Mat_<uchar> src) {
 	for (int i = 0; i < magh.rows; i++)
 		for (int j = 0; j < magh.cols; j++) {
 
-			beta = (int) (((angles(i, j) * 8) / (2 * CV_PI)) + 0.5) % 8;  //floor( ((angles(i, j) * 8) / (2 * CV_PI)) + 0.5) % 8;
-			beta2 = (int) (beta + 4) % 8;
+			beta = (int)(((angles(i, j) * 8) / (2 * CV_PI)) + 0.5) % 8;  //floor( ((angles(i, j) * 8) / (2 * CV_PI)) + 0.5) % 8;
+			beta2 = (int)(beta + 4) % 8;
 
 			if (i + dirx[beta] < magh.rows && i + dirx[beta] >= 0 && j + diry[beta] < magh.cols && j + diry[beta] >= 0
 				&& i + dirx[beta2] < magh.rows && i + dirx[beta2] >= 0 && j + diry[beta2] < magh.cols && j + diry[beta2] >= 0) {
-				if ((magh(i + dirx[beta], j + diry[beta]) >= magh(i,j) )
-					|| (magh(i + dirx[beta2], j + diry[beta2]) >= magh(i,j) ))
+				if ((magh(i + dirx[beta], j + diry[beta]) >= magh(i, j))
+					|| (magh(i + dirx[beta2], j + diry[beta2]) >= magh(i, j)))
 					thinnedMagh(i, j) = 0;
 			}
 		}
@@ -177,12 +173,14 @@ Mat_ < uchar> canny(Mat_<uchar> src) {
 	Mat_ < uchar> result(thinnedMagh.rows, thinnedMagh.cols);
 	/*int t1 = 150;
 	int t2 = 200;*/
+	
 	int t1 = 40;
 	int t2 = 100;
 
+
 	for (int i = 0; i < thinnedMagh.rows; i++)
 		for (int j = 0; j < thinnedMagh.cols; j++) {
-			if (thinnedMagh(i, j) > t1 && thinnedMagh(i, j) < t2)
+			if (thinnedMagh(i, j) > t1&& thinnedMagh(i, j) < t2)
 				result(i, j) = 128;
 			else if (thinnedMagh(i, j) > t2)
 				result(i, j) = 255;
@@ -218,17 +216,17 @@ Mat_ < uchar> canny(Mat_<uchar> src) {
 			}
 		}
 
-		// if the weak is in air, make it black
-		for (int i = 0; i < src.rows; i++) 
-			for (int j = 0; j < src.cols; j++) {
-				if (result.at<uchar>(i, j) == 128) {
-					result.at<uchar>(i, j) = 0;
-				}
+	// if the weak is in air, make it black
+	for (int i = 0; i < src.rows; i++)
+		for (int j = 0; j < src.cols; j++) {
+			if (result.at<uchar>(i, j) == 128) {
+				result.at<uchar>(i, j) = 0;
 			}
-		
-		/*imshow("result edge linking", result);
-		waitKey(0);*/
-		return result;
+		}
+
+	/*imshow("result edge linking", result);
+	waitKey(0);*/
+	return result;
 }
 
 long double otsu(Mat_<uchar> src) {
@@ -301,7 +299,7 @@ long double otsu(Mat_<uchar> src) {
 	// Maximize interclass variance
 	long double maxi = 0;
 	int getmax = 0;
-	for (int i = 0;i < 255; i++) {
+	for (int i = 0; i < 255; i++) {
 		if (maxi < Inter_class_variance[i]) {
 			maxi = Inter_class_variance[i];
 			getmax = i;
@@ -323,8 +321,15 @@ Mat_<uchar> prewitt(Mat_<uchar> src) {
 	Mat_<float> dyPrewitt = Mat(src.rows, src.cols, CV_32FC1);
 	float* valsSecondPrewitt = new float[9]{ 1, 1, 1, 0, 0, 0, -1, -1, -1 };
 	dyPrewitt = convolutionWithoutNormalization(src, 1, 1, valsSecondPrewitt);
+	Mat_<float> magh = Mat(src.rows, src.cols, CV_32FC1);
 
-	return dxPrewitt;
+
+	for (int i = 0; i < dxPrewitt.rows; i++)
+		for (int j = 0; j < dxPrewitt.cols; j++) {
+			magh(i, j) = sqrt(dxPrewitt(i, j) * dxPrewitt(i, j) + dyPrewitt(i, j) * dyPrewitt(i, j));
+		}
+
+	return magh;
 }
 
 Mat_<uchar> sobel(Mat_ < uchar> src) {
@@ -338,67 +343,74 @@ Mat_<uchar> sobel(Mat_ < uchar> src) {
 	Mat_<float> dySobel = Mat(src.rows, src.cols, CV_32FC1);
 	float* valsSecond = new float[9]{ 1, 2, 1, 0, 0, 0, -1, -2, -1 };
 	dySobel = convolutionWithoutNormalization(src, 1, 1, valsSecond);
+	Mat_<float> magh = Mat(src.rows, src.cols, CV_32FC1);
 	
-	return dxSobel;
+
+	for (int i = 0; i < dxSobel.rows; i++)
+		for (int j = 0; j < dxSobel.cols; j++) {
+			magh(i, j) = sqrt(dxSobel(i, j) * dxSobel(i, j) + dySobel(i, j) * dySobel(i, j));
+		}
+
+	return magh;
 }
 
 int testVideoSequenceAll()
 {
-		VideoCapture cap(0);
+	VideoCapture cap(0);
 
-		// Check if camera opened successfully
-		if (!cap.isOpened()) {
-				cout << "Error opening video stream" << endl;
-				return -1;
-		}
-	
-		//int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
-		//int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-		//VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
+	// Check if camera opened successfully
+	if (!cap.isOpened()) {
+		cout << "Error opening video stream" << endl;
+		return -1;
+	}
 
-		Mat_<uchar> edges;
-		Mat_<uchar> edges_otsu;
-		Mat_<uchar> edges_Prewitt;
-		Mat_<uchar> edges_Sobel;
-		int c = 0;
+	//int frame_width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+	//int frame_height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+	//VideoWriter video("outcpp.avi", CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
 
-		while (1) {
-				Mat frame;
-				Mat grayFrame;
+	Mat_<uchar> edges;
+	Mat_<uchar> edges_otsu;
+	Mat_<uchar> edges_Prewitt;
+	Mat_<uchar> edges_Sobel;
+	int c = 0;
 
-				cap >> frame;
-				if (frame.empty())
-					break;
+	while (1) {
+		Mat frame;
+		Mat grayFrame;
 
-				cvtColor(frame, grayFrame, CV_BGR2GRAY);
-				edges=canny(grayFrame);
-				long double thres = otsu(grayFrame);
-				edges_otsu=applyThreshold(grayFrame, thres);
-				edges_Prewitt = prewitt(grayFrame);
-				edges_Sobel = sobel(grayFrame);
+		cap >> frame;
+		if (frame.empty())
+			break;
 
-				//video.write(edges);
-				//imshow("Frame", edges);
-				
-				// Display the resulting frame    	
-				imshow("Canny", edges);
-				imshow("Otsu", edges_otsu);
-				imshow("Prewitt", edges_Prewitt);
-				imshow("Sobel", edges_Sobel);
-			
+		cvtColor(frame, grayFrame, CV_BGR2GRAY);
+		edges = canny(grayFrame);
+		long double thres = otsu(grayFrame);
+		edges_otsu = applyThreshold(grayFrame, thres);
+		edges_Prewitt = prewitt(grayFrame);
+		edges_Sobel = sobel(grayFrame);
 
-				// Press  ESC on keyboard to  exit
-				char c = (char)waitKey(1);
-				if (c == 27)
-					break;
-			
-		}
+		//video.write(edges);
+		//imshow("Frame", edges);
 
-		cap.release();
-		//video.release();
+		// Display the resulting frame    	
+		imshow("Canny", edges);
+		imshow("Otsu", edges_otsu);
+		imshow("Prewitt", edges_Prewitt);
+		imshow("Sobel", edges_Sobel);
 
-		destroyAllWindows();
-		return 0;
+
+		// Press  ESC on keyboard to  exit
+		char c = (char)waitKey(1);
+		if (c == 27)
+			break;
+
+	}
+
+	cap.release();
+	//video.release();
+
+	destroyAllWindows();
+	return 0;
 }
 
 int testVideoSequenceCanny()
@@ -426,9 +438,10 @@ int testVideoSequenceCanny()
 		cvtColor(frame, grayFrame, CV_BGR2GRAY);
 		edges = canny(grayFrame);
 		Canny(grayFrame, edgesC, 40, 100, 3);
-		
+
 		imshow("Our Canny", edges);
 		imshow("OpenCV Canny", edgesC);
+	
 
 		// Press  ESC on keyboard to  exit
 		char c = (char)waitKey(1);
@@ -464,14 +477,14 @@ int testVideoSequenceOtsu()
 			break;
 
 		cvtColor(frame, grayFrame, CV_BGR2GRAY);
-		
+
 		long double thres = otsu(grayFrame);
 		edges = applyThreshold(grayFrame, thres);
-		
+
 		double thresh = 0;
 		double maxValue = 255;
 		long double threst = cv::threshold(grayFrame, edgesO, thresh, maxValue, THRESH_OTSU);
-  	
+
 		imshow("Our Otsu", edges);
 		imshow("OpenCV Otsu", edgesO);
 
@@ -491,10 +504,10 @@ int main()
 {
 	int op;
 	//Mat_<uchar> img = imread("Images/cameraman.bmp", CV_LOAD_IMAGE_GRAYSCALE);
-	Mat_<uchar> img = imread("Images/basket.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//Mat_<uchar> img = imread("Images/basket.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	//Mat_<uchar> img = imread("Images/bear.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-	//Mat_<uchar> img = imread("Images/bear_2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-	//Mat_<uchar> img = imread("Images/brush.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//1)Mat_<uchar> img = imread("Images/bear_2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	Mat_<uchar> img = imread("Images/brush.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	//Mat_<uchar> img = imread("Images/elephants.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	//Mat_<uchar> img = imread("Images/elephants_2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	//Mat_<uchar> img = imread("Images/goat_2.jpg", CV_LOAD_IMAGE_GRAYSCALE);
@@ -502,9 +515,10 @@ int main()
 	//Mat_<uchar> img = imread("Images/lions.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	//Mat_<uchar> img = imread("Images/rino.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	//Mat_<uchar> img = imread("Images/turtle.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	
 
-	int * hist;
-	float * pdf;
+	int* hist;
+	float* pdf;
 	hist = new int[256];
 	pdf = new float[256];
 	int m = 256;
@@ -529,121 +543,126 @@ int main()
 		printf(" 8 - Prewitt - on image \n");
 		printf(" 9 - Our Canny vs Canny OpenCV - on image \n");
 		printf(" 10 - Our Otsu vs Otsu OpenCV - on image \n");
-		printf(" 11 - All edge detction algorithms - on image \n");
+		printf(" 11 - All edge detection algorithms - on image \n");
 		printf(" 0 - Exit\n\n");
 		printf("Option: ");
-		scanf("%d",&op);
+		scanf("%d", &op);
 
 		switch (op)
 		{
-			case 1:
-			{
-				testVideoSequenceAll();
-				break;
-			}
-			case 2:
-			{
-				testVideoSequenceCanny();
-				break;
-			}
-			case 3:
-			{
-				testVideoSequenceOtsu();
-				break;
-			}
-			case 4:
-			{
-				computeHistogram(img, hist, pdf, 1);
-				showHistogram("Histogram", hist, 256, 300);
-				waitKey(0);
-				break;
-			}
-			case 5:
-			{
-				Mat_<uchar> cannyEdges;
-				cannyEdges = canny(img);
-				imshow("Canny Output", cannyEdges);
-				break;
-			}
-			case 6:
-			{
-				Mat_<uchar> otsuEdges;
-				long double thres = otsu(img);
-				otsuEdges = applyThreshold(img, thres);
-				imshow("Otsu Output", otsuEdges);
-
-				break;
-			}
-			case 7:
-			{
-				Mat_<uchar> sobelEdges;
-				sobelEdges = sobel(img);
-				imshow("Sobel Output", sobelEdges);
-				break;
-			}
-			case 8:
-			{
-				Mat_<uchar> prewittEdges;
-				prewittEdges = prewitt(img);
-				imshow("Prewitt Output", prewittEdges);
-				break;
-			}
-			case 9:
-			{
-				//our canny
-				Mat_<uchar> cannyEdges;
-				cannyEdges = canny(img);
-
-				//opencv canny
-				Mat_<uchar> cannyOpenCvEdges;
-				Canny(img, cannyOpenCvEdges, 40, 100, 3);
-
-				imshow("Canny", cannyEdges);
-				imshow("Canny OpenCV", cannyOpenCvEdges);
-				break;
-			}
-			case 10:
-			{
-				//our otsu
-				Mat_<uchar> otsuEdges;
-				long double thres = otsu(img);
-				otsuEdges = applyThreshold(img, thres);
-
-				//opencv otsu
-				Mat_<uchar> otsuOpenCvEdges;
-				double thresh = 0;
-				double maxValue = 255;
-				long double threst = cv::threshold(img, otsuOpenCvEdges, thresh, maxValue, THRESH_OTSU);
-
-				imshow("Otsu", otsuEdges);
-				imshow("Otsu OpenCV", otsuOpenCvEdges);
-				break;
-			}
-			case 11:
-			{
-				//all applied on photos
-				Mat_<uchar> cannyEdges;
-				Mat_<uchar> otsuEdges;
-				Mat_<uchar> prewittEdges;
-				Mat_<uchar> sobelEdges;
-
-				cannyEdges = canny(img);
-
-				long double thres = otsu(img);
-				otsuEdges = applyThreshold(img, thres);
-
-				prewittEdges = prewitt(img);
-
-				sobelEdges = sobel(img);
-  	
-				imshow("Canny", cannyEdges);
-				imshow("Otsu", otsuEdges);
-				imshow("Prewitt", prewittEdges);
-				imshow("Sobel", sobelEdges);
-				break;
-			}
+		case 1:
+		{
+			testVideoSequenceAll();
+			break;
 		}
-	}
-	while (op!=0);
+		case 2:
+		{
+			testVideoSequenceCanny();
+			break;
+		}
+		case 3:
+		{
+			testVideoSequenceOtsu();
+			break;
+		}
+		case 4:
+		{
+			computeHistogram(img, hist, pdf, 1);
+			showHistogram("Histogram", hist, 256, 300);
+			waitKey(0);
+			break;
+		}
+		case 5:
+		{
+			Mat_<uchar> cannyEdges;
+			cannyEdges = canny(img);
+			imshow("Canny Output", cannyEdges);
+			waitKey(0);
+			break;
+		}
+		case 6:
+		{
+			Mat_<uchar> otsuEdges;
+			long double thres = otsu(img);
+			otsuEdges = applyThreshold(img, thres);
+			imshow("Otsu Output", otsuEdges);
+			waitKey(0);
+			break;
+		}
+		case 7:
+		{
+			Mat_<uchar> sobelEdges;
+			sobelEdges = sobel(img);
+			imshow("Sobel Output", sobelEdges);
+			waitKey(0);
+			break;
+		}
+		case 8:
+		{
+			Mat_<uchar> prewittEdges;
+			prewittEdges = prewitt(img);
+			imshow("Prewitt Output", prewittEdges);
+			waitKey(0);
+			break;
+		}
+		case 9:
+		{
+			//our canny
+			Mat_<uchar> cannyEdges;
+			cannyEdges = canny(img);
+
+			//opencv canny
+			Mat_<uchar> cannyOpenCvEdges;
+			Canny(img, cannyOpenCvEdges, 40, 100, 3);
+
+			imshow("Canny", cannyEdges);
+			imshow("Canny OpenCV", cannyOpenCvEdges);
+			waitKey(0);
+			break;
+		}
+		case 10:
+		{
+			//our otsu
+			Mat_<uchar> otsuEdges;
+			long double thres = otsu(img);
+			otsuEdges = applyThreshold(img, thres);
+
+			//opencv otsu
+			Mat_<uchar> otsuOpenCvEdges;
+			double thresh = 0;
+			double maxValue = 255;
+			long double threst = cv::threshold(img, otsuOpenCvEdges, thresh, maxValue, THRESH_OTSU);
+
+			imshow("Otsu", otsuEdges);
+			imshow("Otsu OpenCV", otsuOpenCvEdges);
+			waitKey(0);
+			break;
+		}
+		case 11:
+		{
+			//all applied on photos
+			Mat_<uchar> cannyEdges;
+			Mat_<uchar> otsuEdges;
+			Mat_<uchar> prewittEdges;
+			Mat_<uchar> sobelEdges;
+
+			cannyEdges = canny(img);
+
+			long double thres = otsu(img);
+			otsuEdges = applyThreshold(img, thres);
+
+			prewittEdges = prewitt(img);
+
+			sobelEdges = sobel(img);
+
+			imshow("Canny", cannyEdges);
+			imshow("Otsu", otsuEdges);
+			imshow("Prewitt", prewittEdges);
+			imshow("Sobel", sobelEdges);
+			waitKey(0);
+			break;
+		}
+		}
+	} while (op != 0);
 	return 0;
 }
